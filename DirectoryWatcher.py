@@ -16,8 +16,8 @@ class DirectoryWatcher (threading.Thread):
 		
 	def watchThisDirectory(self, directory, events, recursively=False):
 		if not os.path.isdir(directory):
-			self.logging.error("The given directory ["+str(directory)+"] is not a directry")
-			raise Exception("The given directory ["+str(directory)+"] is not a directry")
+			self.logging.error("The given directory ["+str(directory)+"] is not a directory")
+			raise Exception("The given directory ["+str(directory)+"] is not a directory")
 			
 		if events:
 			#Consider all events as array
