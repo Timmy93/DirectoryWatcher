@@ -15,6 +15,10 @@ class DirectoryWatcher (threading.Thread):
 		self.logging.info("Created DirectoryWatcher element")
 		
 	def watchThisDirectory(self, directory, events, recursively=False):
+		if not os.path.isdir(directory):
+			self.logging.error("The given directory ["+str(directory)+"] is not a directry")
+			raise Exception("The given directory ["+str(directory)+"] is not a directry")
+			
 		if events:
 			#Consider all events as array
 			if type(events) is str:
@@ -22,7 +26,7 @@ class DirectoryWatcher (threading.Thread):
 			self.watchedEvents = events
 			self.logging.info("Monitoring the following events: ["+str(self.watchedEvents)+"]")
 		else:
-			self.logging.info("No events to monitor")
+			self.error.info("No events to monitor")
 			raise Exception('No events to monitor')
 			
 		if recursively:
@@ -41,12 +45,10 @@ class DirectoryWatcher (threading.Thread):
 						for we in self.watchedEvents:
 							if we in event[1]:
 								newfile = os.path.join(event[2], event[3])
-								self.logging.info("Registered event ["+event[1]+"] for file ["+newfile+"]")
+								self.logging.info("Registered event ["+str(event[1])+"] for file ["+newfile+"]")
 								while not self.stableSize(newfile):
 									self.logging.info("Still writing on file ["+newfile+"]")
-								self.callbackFunction()
-							
-							
+								self.callbackFunction(newfile)							
 				self.logging.warning("DirectoryWatcher stopped checking directory")
 			except RuntimeError:
 				self.logging.warning("Thread is dead for a Runtime error")
