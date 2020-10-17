@@ -1,0 +1,60 @@
+#!/usr/bin/env python3
+import threading
+import inotify.adapters
+import logging
+import os
+import time
+
+# The main class
+class DirectoryWatcher (threading.Thread):
+   
+	def __init__(self, callbackFunction, logging=None):
+		threading.Thread.__init__(self)
+		self.logging = logging
+		self.callbackFunction = callbackFunction
+		self.logging.info("Created DirectoryWatcher element")
+		
+	def watchThisDirectory(self, directory, events, recursively=False):
+		if events:
+			#Consider all events as array
+			if type(events) is str:
+				events = [events]
+			self.watchedEvents = events
+			self.logging.info("Monitoring the following events: ["+str(self.watchedEvents)+"]")
+		else:
+			self.logging.info("No events to monitor")
+			raise Exception('No events to monitor')
+			
+		if recursively:
+			self.notifier = inotify.adapters.InotifyTree(directory)
+			self.logging.info("Starting a recursive monitoring on directory and subdirectory ["+directory+"]")
+		else:
+			self.notifier = inotify.adapters.Inotify()
+			self.notifier.add_watch(directory)
+			self.logging.info("Starting a plain monitoring on directory ["+directory+"]")
+	
+	def run(self):
+		while(1):
+			try:
+				for event in self.notifier.event_gen():
+					if event is not None:
+						for we in self.watchedEvents:
+							if we in event[1]:
+								newfile = os.path.join(event[2], event[3])
+								self.logging.info("Registered event ["+event[1]+"] for file ["+newfile+"]")
+								while not self.stableSize(newfile):
+									self.logging.info("Still writing on file ["+newfile+"]")
+								self.callbackFunction()
+							
+							
+				self.logging.warning("DirectoryWatcher stopped checking directory")
+			except RuntimeError:
+				self.logging.warning("Thread is dead for a Runtime error")
+			else:
+				self.logging.warning("Thread is dead")
+	
+	#Check if the file is still being written
+	def stableSize(self, myFile):
+		initialSize = os.path.getsize(myFile)
+		time.sleep(1)
+		return os.path.getsize(myFile) == initialSize
