@@ -46,9 +46,12 @@ class DirectoryWatcher (threading.Thread):
 							if we in event[1]:
 								newfile = os.path.join(event[2], event[3])
 								self.logging.info("Registered event ["+str(event[1])+"] for file ["+newfile+"]")
-								while not self.stableSize(newfile):
-									self.logging.info("Still writing on file ["+newfile+"]")
-								self.callbackFunction(newfile)							
+								try:
+									while not self.stableSize(newfile):
+										self.logging.info("Still writing on file ["+newfile+"]")
+									self.callbackFunction(newfile)
+								except FileNotFoundError as err:
+									self.logging.warning("File missing ["+newfile+"] - Skipping callback ["+str(err)+"]")
 				self.logging.warning("DirectoryWatcher stopped checking directory")
 			except RuntimeError:
 				self.logging.warning("Thread is dead for a Runtime error")
