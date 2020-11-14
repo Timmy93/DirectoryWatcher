@@ -53,10 +53,10 @@ class DirectoryWatcher (threading.Thread):
 								except FileNotFoundError as err:
 									self.logging.warning("File missing ["+newfile+"] - Skipping callback ["+str(err)+"]")
 				self.logging.warning("DirectoryWatcher stopped checking directory")
-			except RuntimeError:
-				self.logging.warning("Thread is dead for a Runtime error")
-			else:
-				self.logging.warning("Thread is dead")
+			except RuntimeError as err:
+				self.logging.warning("Thread is dead for a Runtime error ["+str(err)+"]")
+			except Exception as err:
+				self.logging.error("Unexpected thread dead ["+str(err)+"]")
 	
 	#Check if the file is still being written
 	def stableSize(self, myFile):
