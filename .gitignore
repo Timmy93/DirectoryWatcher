@@ -108,3 +108,4 @@ venv.bak/
 Settings/*.json
 Settings/*.db
 temp/*
+.idea
